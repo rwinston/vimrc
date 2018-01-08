@@ -61,6 +61,7 @@ set title
 set hlsearch
 set incsearch
 set backspace=indent,eol,start
+set cursorline
 
 " Keymaps
 " Line numbering on/off
@@ -70,7 +71,10 @@ set backspace=indent,eol,start
 " Turn search highlight on/off
 :nnoremap <C-H> :set invhlsearch<CR>
 " Show hidden chars/leading/trailing spaces
-:nnoremap <C-L> :set listchars=tab:>-,eol:$,trail:-
+:nnoremap <C-L> :set listchars=tab:>-,eol:$,trail:-<CR>
+" Toggle cursorline
+:nnoremap <C-;> :set invcursorline<CR>
+
 
 " Prettyprint XML buffer
 function! FormatXml()  
@@ -85,6 +89,29 @@ endfunction
 function! LastLookToCsv() 
     %s/.*log:\(\d\+-\d\+-\d\+ \d\+:\d\+:\d\+\),.*Client: id='\(\S\+\) .*key: \([^\]]\+\)\].*currentClOrdId: \([^\]]\+\)\].*symbol: \([^\]]\+\)\].*price='\(\d\+\.\d\+\)', mid=\(\d\+\.\d\+\)'.*/\1,\2,\3,\4,\5,\6,\7/g
 endfunction
+
+function! FormatOrderBook()
+    %s/,\s\+\(\S\+=\)/,/g | %s/\[O[^\]]\+\]//g | %s/,\+$//g | %s/^\s\+//g
+endfunction
+
+
+function! AggMetrics() 
+    %v/MarketDataMetrics\|======/d
+    %s/^\(\d\+-\d\+-\d\+ \d\+:\d\+:\d\+\),\(\d\+\) .*/\1\.\2,/g
+    %s/.*Events processed | \(\d\+\) .*/\1,/g
+    %s/.* STHandOff.*average=\(\S\+\) .*max=\(\S\+\).*/\1,\2/g 
+    %s/.* \(SlowQuote\|PickUp\|MdsConversion\|EndToEnd\|BeforeAdd\|Receipt\).*average=\(\S\+\) .*max=\(\S\+\).*\n/\2,\3,/g
+    %s/,\n/,/g
+    execute "normal! 1GItime,events,slowquote_avg,slowquote_max,pickuptoend_avg,pickuptoend_max,mds_avg,mds_max,endtoend_avg,endtoend_max,beforeadd_avg,beforeadd_max,receipttobuf_avg,receipttobuf_max,sthandoff_avg,sthandoff_max\n\e"
+endfunction
+
+function! ParNew()
+    %v/ParNew/d
+    %s/.*ParNew:\s\+\(\d\+\)K->\(\d\+\)K(\(\d\+\)K), \(\d\+\.\d\+\) secs] \(\d\+\)K->\(\d\+\)K(\(\d\+\)K), \(\d\+\.\d\+\) secs.*/\1,\2,\3,\4,\5,\6,\7,\8/g
+endfunction
+    
+" %s/\(\d\+-\d\+-\d\+\) \(\d\+:\d\+:\d\+\),\(\d\+\) .*orderId=\([^,]\+\),.*client=\([^,]\+\),.*PRICE_SOURCE=\([^,]\+\),/\1/g
+    
 
 " Matchit
 runtime macros/matchit.vim
@@ -109,9 +136,7 @@ set shellcmdflag=--login\ -c
 set shellxquote=\"
 
 " Menu
-amenu Utils.Format\ XML :call FormatXml()<cr>
-amenu Utils.UpsertsToCsv :call UpsertsToCsv()<cr>
-amenu Utils.LastLookToCsv :call LastLookToCsv()<cr>
+amenu Utils.FormatOrderBook :call FormatOrderBook()<cr>
 
 command! -nargs=? -range Hex2dec call s:Hex2dec(<line1>, <line2>, '<args>')
 function! s:Hex2dec(line1, line2, arg) range
@@ -136,8 +161,21 @@ endfunction
 "colorscheme desert
 syntax enable
 set background=dark
-colorscheme solarized
+let g:zenburn_high_Contrast=1
+"colorscheme zenburn
+colorscheme slate
 
+" Airline options
+let g:airline#extensions#tabline#enabled = 1
+let g:airline#extensions#tabline#left_sep = ' '
+let g:airline#extensions#tabline#left_alt_sep = '|'
 
+let $TMP="c:/temp"
 
+"DirectX
+if has("directx") && $VIM_USE_DIRECTX != '0'
+  set renderoptions=type:directx,geom:1,taamode:1
+endif
+
+set enc=utf-8
 
