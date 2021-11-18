@@ -35,7 +35,7 @@ function MyDiff()
   endif
 endfunction
 
-set guifont=Consolas:h12
+set guifont=Hack:h14
 
 " Maximise on entry
 au GUIEnter * simalt ~x
@@ -53,8 +53,10 @@ set hlsearch
 set incsearch
 
 " Colors
+autocmd vimenter * ++nested colorscheme gruvbox
+packadd! dracula
 set background=dark
-colorscheme gruvbox
+colorscheme dracula
 
 " Status line and ruler/appearance 
 set laststatus=2
@@ -62,3 +64,4 @@ set guioptions-=e
 set guioptions-=T
 set showtabline=2
 set number
+
